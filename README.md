@@ -3,7 +3,7 @@
 ## Table of Contents
 - [Introduction](#introduction)
 - [UniAPR Setup](#uniapr-setup)
-    * [UniAPR Configuration](#uniapr-configuration)
+    * [Fine Tuning UniAPR](#fine-tuning-uniapr)
 - [UniAPR Demonstration](#uniapr-demonstration)
 - [System Requirements](#system-requirements)
 
@@ -46,7 +46,7 @@ mvn org.uniapr:uniapr-plugin:valdiate
 
 By default, UniAPR expects a directory names `patches-pool` under the base directory of the target project. This directory is expected to contain a sub-directory for each patch in side each of which the class file(s) for the corresponding patch should reside. If everything goes well, the user will see a `BUILD SUCCESS` message on their screen. Above this message, UniAPR will print a brief summary of its output, e.g., the time taken to validate patches and the number of plausible patches found. The id of the plausible patch(es) shall also printed as they are discovered. Therefore, the user might want to log the standard output for examination.
 
-### Configuring UniAPR
+### Fine Tuning UniAPR
 The user can override default values of UniAPR parameters by adding a `<configuration>` tag under the tag corresponding to UniAPR plugin. The following XML snippet shows the full form of plugin specification. Optional parameters, with their default values, are shown in comments. Please note that for ease of reference, we have marked each section so that in the rest of this section, we can explain each section in greater details.
 
 ```xml
@@ -55,36 +55,36 @@ The user can override default values of UniAPR parameters by adding a `<configur
     <artifactId>uniapr-plugin</artifactId>
     <version>1.0-SNAPSHOT</version>
     <!-- <configuration>		           	                            -->
-    :one: <!-- <failingTests>	      						    -->
+    (1)   <!-- <failingTests>	      						    -->
           <!--  <failingTest>fully.qualified.test.Class1::testMethod1</failingTest> -->
           <!--    ...								    -->
           <!--	<failingTest>fully.qualified.test.ClassN::testMethodN</failingTest> -->
           <!-- </failingTests>							    -->
 
-    :two: <!-- <whiteListPrefix>${project.groupId}</whiteListPrefix>        	    -->
+    (2)   <!-- <whiteListPrefix>${project.groupId}</whiteListPrefix>        	    -->
 	
-  :three: <!-- <patchesPool>patches-pool</patchesPool>                              -->
+    (3)   <!-- <patchesPool>patches-pool</patchesPool>                              -->
 
-   :four: <!-- <resetJVM>false</resetJVM>					    -->
+    (4)   <!-- <resetJVM>false</resetJVM>					    -->
         
-   :five: <!-- <childJVMArgs>							    -->
-          <!--     <childJVMArg>-Xmx16g</childJVMArg>                       	    -->
-          <!--     ...                                                      	    -->
-          <!--     <childJVMArg>Mth argument to the child JVM</childJVMArg> 	    -->
+    (5)   <!-- <childJVMArgs>							    -->
+          <!--  <childJVMArg>-Xmx16g</childJVMArg>                       	    -->
+          <!--  ...                                                      	    -->
+          <!--  <childJVMArg>Mth argument to the child JVM</childJVMArg> 	    -->
           <!-- </childJVMArgs>                                               	    -->
     <!-- </configuration>	         	         			    -->
 </plugin>
 ```
 
-UniAPR needs to know the list of failing tests so as to run them before regression tests. The system is able to infer the test cases if the user leaves them blank, but for some projects, due to some dependency issues that show up only in certain scenarios, the user might need to manually specify them in the POM file. In such a case, fully qualified name of the failing tests should be provided in `<failingTests>` section (the part marked with :one: in the above snippet).
+UniAPR needs to know the list of failing tests so as to run them before regression tests. The system is able to infer the test cases if the user leaves them blank, but for some projects, due to some dependency issues that show up only in certain scenarios, the user might need to manually specify them in the POM file. In such a case, fully qualified name of the failing tests should be provided in `<failingTests>` section (the part marked with (1) in the above snippet).
 
-For profiling purposes, as well as to locate test cases, the system needs to distinguish application classes from library classes. We assume that user classes all begin with certain class name prefix. Class name prefix can be speficied via the parameter `<whiteListPrefix>` (the part marked with :two: in the above snippet). By default, groupId of the project will be used as whitelist prefix.
+For profiling purposes, as well as to locate test cases, the system needs to distinguish application classes from library classes. We assume that user classes all begin with certain class name prefix. Class name prefix can be speficied via the parameter `<whiteListPrefix>` (the part marked with (2) in the above snippet). By default, groupId of the project will be used as whitelist prefix.
 
-UniAPR expects that the user has the class files for the patches bundled inside a directory under the base directory of the target project. The directory is expected to have a separate subdirectory for each patch. The class file(s) for each patch resides within the subdirectory corresponding for the patch. By default, UniAPR looks for the directory named `patches-pool` under the base directory. The user can choose to use a different directory by changing the value of the parameter `<patchesPool>`. (the part marked with :three: in the above snippet)
+UniAPR expects that the user has the class files for the patches bundled inside a directory under the base directory of the target project. The directory is expected to have a separate subdirectory for each patch. The class file(s) for each patch resides within the subdirectory corresponding for the patch. By default, UniAPR looks for the directory named `patches-pool` under the base directory. The user can choose to use a different directory by changing the value of the parameter `<patchesPool>`. (the part marked with (3) in the above snippet)
 
-JVM-reset capability of UniAPR can be controlled by the user. The user can use the parameter `<resetJVM>` (the part marked with :four: in the above snippet) to enable or disable JVM-reset functionality of UniAPR. When disabled no JVM state clean up will happen between each patch validation session, and thus the side-effects of test case executions might propagate from one patch to another. In this mode of operation, since there is no instrumentation and no added overhead of invoking reset code is in place, UniAPR will run with maximum speed. However, since the side-effects of test cases are not contained, chances are that UniAPR reports imprecise results.
+JVM-reset capability of UniAPR can be controlled by the user. The user can use the parameter `<resetJVM>` (the part marked with (4) in the above snippet) to enable or disable JVM-reset functionality of UniAPR. When disabled no JVM state clean up will happen between each patch validation session, and thus the side-effects of test case executions might propagate from one patch to another. In this mode of operation, since there is no instrumentation and no added overhead of invoking reset code is in place, UniAPR will run with maximum speed. However, since the side-effects of test cases are not contained, chances are that UniAPR reports imprecise results.
 
-Last but not least, since some patches might need more heap/stack space to run, we have provided the user with a way of setting JVM parameters from the POM file. This can be specifed in the part marked by :five: in the above snippet.
+Last but not least, since some patches might need more heap/stack space to run, we have provided the user with a way of setting JVM parameters from the POM file. This can be specifed in the part marked by (5) in the above snippet.
 
 ## UniAPR Demonstration
 Since the reviewers might not have any bugs available, we have shipped four real-world example projects from [Defects4J](https://github.com/rjust/defects4j) bug database. These projects are already compiled and come with preconfigured POM file as well we `patches-pool` directory.
